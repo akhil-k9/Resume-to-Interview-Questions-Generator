@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Microphone Test</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:900px;margin:30px auto;padding:0 18px;background:#fffaf6;color:#30252a}
+button{padding:12px 18px;border-radius:9px;border:1px solid #d9b8c7;background:white;cursor:pointer;margin-right:8px}
+.box{padding:15px;border:1px solid #ead6dd;border-radius:12px;margin:14px 0;background:#fff}
+.meter{height:12px;background:#eadfe2;border-radius:99px;overflow:hidden}.fill{height:100%;width:2%;background:#c42f78}
+pre{white-space:pre-wrap;background:#f6efea;padding:12px;border-radius:8px}
+.ok{color:#25724b}.bad{color:#b52e43}
+</style>
+</head>
+<body>
+<h1>Microphone Test</h1>
+<p>This page tests microphone access independently from the interview logic.</p>
+<div class="box">
+<button id="start">🎙️ Enable microphone</button>
+<button id="stop">⏹ Stop</button>
+<p id="status">Not started</p>
+<p>Microphone: <b id="mic">—</b></p>
+<div class="meter"><div id="fill" class="fill"></div></div>
+</div>
+<div class="box"><b>Browser/device diagnostics</b><pre id="diag">Waiting...</pre></div>
+{% block scripts %}
+<script>
+let stream=null, ctx=null, analyser=null, raf=null;
+const $=id=>document.getElementById(id);
+async function start(){
+  $('status').textContent='Requesting microphone permission...';
+  $('diag').textContent=`URL: ${location.href}
+Secure context: ${window.isSecureContext}`;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const at=stream.getAudioTracks();
+    $('mic').textContent=at.length?'WORKING':'FAILED';
+    $('mic').className=at.length?'ok':'bad';
+    $('status').textContent='Microphone opened successfully.';
+    ctx=new (AudioContext||webkitAudioContext)();
+    analyser=ctx.createAnalyser(); analyser.fftSize=256;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    const data=new Uint8Array(analyser.fftSize);
+    const tick=()=>{analyser.getByteTimeDomainData(data);let s=0;for(const x of data){let v=(x-128)/128;s+=v*v} $('fill').style.width=Math.min(100,Math.max(2,Math.sqrt(s/data.length)*450))+'%';raf=requestAnimationFrame(tick)}; tick();
+    $('diag').textContent += `\nAudio track: ${at.map(t=>t.label+' / '+t.readyState).join(', ')}`;
+  }catch(e){
+    $('status').textContent='FAILED: '+e.name;
+    $('status').className='bad';
+    $('diag').textContent += `\nERROR: ${e.name}\n${e.message||''}\n\nCommon fixes: allow Microphone for this site; close Zoom/Teams/Meet or another recorder.`;
+  }
+}
+function stop(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(raf)cancelAnimationFrame(raf);if(ctx)ctx.close();ctx=null;$('status').textContent='Stopped';}
+$('start').onclick=start;$('stop').onclick=stop;
+</script>
+</body>
+</html>
+
+{% endblock %}

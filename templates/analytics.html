@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Performance · Resume2Interview AI
+{% endblock %}
+
+{% block content %}
+
+<main class="page">
+
+  <div class="topline">
+
+<div>
+
+  <div class="eyebrow">
+    POST-INTERVIEW INTELLIGENCE
+  </div>
+
+  <h1>
+    Performance analytics
+  </h1>
+
+  <p>
+    {{ s.job_role }}
+    ·
+    {{ answers|length }} answered
+    ·
+    {{ 30 - answers|length }} skipped/remaining recorded
+  </p>
+
+</div>
+
+<div class="readiness">
+
+  <strong>
+    {{ s.readiness_score }}%
+  </strong>
+
+  <span>
+    readiness
+  </span>
+
+</div>
+
+
+  </div>
+
+  <div class="analytics-grid">
+
+
+{% for cat, score in cat_scores.items() %}
+
+  <div class="card metriccard">
+
+    <span>
+      {{ cat }}
+    </span>
+
+    <strong>
+      {{ score }}%
+    </strong>
+
+    <div class="bar">
+
+      <span
+      <span class="score-bar-fill" data-score="{{ score }}"></span>
+      ></span>
+
+    </div>
+
+  </div>
+
+{% endfor %}
+
+
+  </div>
+
+  <div class="grid2">
+
+
+<!-- SKILL PRIORITIES -->
+
+<div class="card">
+
+  <div class="sectionhead left">
+
+    <span>
+      SKILL PRIORITIES
+    </span>
+
+    <h2>
+      What to improve next
+    </h2>
+
+  </div>
+
+  {% for g in gaps[:6] %}
+
+    <div class="recommend">
+
+      <b>
+        {{ g.skill }}
+      </b>
+
+      <span class="priority {{ g.priority|lower }}">
+        {{ g.priority }}
+      </span>
+
+      <p>
+        {{ g.status }}
+        ·
+        {{ g.score }}%
+        ·
+        {{ g.why }}
+      </p>
+
+    </div>
+
+  {% else %}
+
+    <p>
+      Complete more interviews to unlock skill priorities.
+    </p>
+
+  {% endfor %}
+
+</div>
+
+
+<!-- ANSWER QUALITY -->
+
+<div class="card">
+
+  <div class="sectionhead left">
+
+    <span>
+      ANSWER QUALITY
+    </span>
+
+    <h2>
+      Recent evaluations
+    </h2>
+
+  </div>
+
+  {% for a, e in zip(answers, evals) %}
+
+    <div class="review">
+
+      <b>
+        {{ a.question.question }}
+      </b>
+
+      <span>
+        {{ e.overall }}/10
+      </span>
+
+      <small>
+        {{ e.feedback }}
+      </small>
+
+    </div>
+
+  {% endfor %}
+
+</div>
+
+
+  </div>
+
+  <div class="actions">
+
+
+<a
+  class="btn primary"
+  href="{{ url_for('suggested_answers', sid=s.id) }}"
+>
+  💡 Suggested answers
+</a>
+
+<a
+  class="btn ghost"
+  href="{{ url_for('skill_gap', sid=s.id) }}"
+>
+  Skill-gap analysis
+</a>
+
+<a
+  class="btn ghost"
+  href="{{ url_for('learning', sid=s.id) }}"
+>
+  Learning roadmap
+</a>
+
+<a
+  class="btn ghost"
+  href="{{ url_for('resume_improvement', sid=s.id) }}"
+>
+  Resume improvements
+</a>
+
+
+
+  </div>
+
+</main>
+{% block scripts %}
+
+<script>
+  document.querySelectorAll(".score-bar-fill").forEach(function (bar) {
+    const score = Number(bar.dataset.score || 0);
+    const safeScore = Math.max(0, Math.min(100, score));
+
+    bar.style.width = safeScore + "%";
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,1842 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Interview · Resume2Interview AI{% endblock %}
+
+{% block content %}
+
+<main class="page narrow">
+
+  <!-- =========================
+       INTERVIEW HEADER
+  ========================== -->
+  <div class="interviewhead">
+
+    <div>
+      <div class="eyebrow">AI INTERVIEW SESSION</div>
+
+      <h1>
+        {% if done %}
+          Interview completed
+        {% else %}
+          Mock interview
+        {% endif %}
+      </h1>
+
+      <p style="margin:6px 0 0;">
+        {{ profile.name if profile and profile.name else current_user.name }}
+      </p>
+    </div>
+
+    <div class="score">
+      {{ readiness|default(0)|round(0)|int }}
+      <small>Readiness score</small>
+    </div>
+
+  </div>
+
+
+  {% if done %}
+
+  <!-- =========================
+       COMPLETED STATE
+  ========================== -->
+  <section class="card complete">
+
+    <div class="successicon">✓</div>
+
+    <div class="eyebrow" style="margin-top:20px;">
+      INTERVIEW COMPLETE
+    </div>
+
+    <h2>Great work!</h2>
+
+    <p>
+      You have completed the interview session.
+      Your answers and evaluation are ready.
+    </p>
+
+    <div class="actions center">
+
+      <a
+        class="btn primary"
+        href="{{ url_for('analytics', sid=s.id) }}"
+      >
+        View analytics →
+      </a>
+
+      <a
+        class="btn ghost"
+        href="{{ url_for('result', sid=s.id) }}"
+      >
+        View questions
+      </a>
+
+    </div>
+
+  </section>
+
+  {% else %}
+
+  <!-- =========================
+       QUESTION PROGRESS
+  ========================== -->
+
+  <section class="card interview-progress-card">
+
+    <div class="question-progress-row">
+
+      <div>
+        <span class="progress-label">
+          INTERVIEW PROGRESS
+        </span>
+
+        <strong
+          id="questionProgress"
+          data-current="{{ (idx|default(0)) + 1 }}"
+          data-total="30"
+        >
+          Question {{ (idx|default(0)) + 1 }} of 30
+        </strong>
+      </div>
+
+      <span
+        id="progressPercentage"
+        class="progress-percentage"
+      >
+        {{ progress|default(0) }}%
+      </span>
+
+    </div>
+
+    <div
+      class="interview-progress-track"
+      aria-label="Interview progress"
+    >
+      <span
+        id="progressFill"
+        data-progress="{{ progress|default(0) }}"
+      ></span>
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       QUESTION + INTERVIEW AREA
+  ========================== -->
+
+  <div class="live-layout">
+
+    <!-- =========================
+         MAIN QUESTION
+    ========================== -->
+
+    <section class="card qfocus">
+
+      <div class="eyebrow">
+        {% if current.category %}
+          {{ current.category }}
+        {% else %}
+          INTERVIEW QUESTION
+        {% endif %}
+      </div>
+
+      <h2>
+        {{ current.question
+           if current.question is defined
+           else current.text
+           if current.text is defined
+           else current }}
+      </h2>
+
+
+      <!-- Suggested answer -->
+      {% if current.suggested_answer %}
+
+      <details class="live-suggestion">
+
+        <summary>
+          💡 View suggested answer
+        </summary>
+
+        <p>
+          {{ current.suggested_answer }}
+        </p>
+
+      </details>
+
+      {% endif %}
+
+
+      <div class="ai-label">
+        YOUR ANSWER
+      </div>
+
+
+      <!-- =========================
+           MICROPHONE STATUS
+      ========================== -->
+
+      <div
+        id="voiceStatus"
+        class="voice-status"
+      >
+        🎙️ Microphone is ready.
+        Click "Start answering" to begin.
+      </div>
+
+
+      <!-- =========================
+           MICROPHONE PERMISSION
+      ========================== -->
+
+      <div class="media-permission">
+
+        <b>Microphone interview</b>
+
+        <div style="margin-top:4px;">
+          Camera is not used.
+          Only microphone permission is requested.
+        </div>
+
+        <button
+          type="button"
+          class="btn ghost"
+          id="enableMicBtn"
+        >
+          🎙️ Enable microphone
+        </button>
+
+      </div>
+
+
+      <!-- =========================
+           MICROPHONE DIAGNOSTICS
+      ========================== -->
+
+      <div
+        class="media-debug-panel"
+        id="mediaDebugPanel"
+      >
+
+        <div class="media-debug-head">
+          <span>MICROPHONE STATUS</span>
+          <b id="mediaOverall">Not enabled</b>
+        </div>
+
+        <div class="media-meter-row">
+          <span>Microphone</span>
+          <b id="micState">Not enabled</b>
+        </div>
+
+        <div class="media-meter-row">
+          <span>Audio level</span>
+          <b id="noiseState">Waiting</b>
+        </div>
+
+        <div class="mic-meter">
+          <i id="micMeterFill"></i>
+        </div>
+
+        <div
+          id="mediaDebugError"
+          class="media-debug-error"
+        ></div>
+
+      </div>
+
+
+      <!-- =========================
+           FORM
+      ========================== -->
+
+      <form
+        method="post"
+        id="answerForm"
+        autocomplete="off"
+      >
+
+        <input
+          type="hidden"
+          name="index"
+          value="{{ idx }}"
+        >
+
+        <input
+          type="hidden"
+          name="answer"
+          id="answerInput"
+          value=""
+        >
+
+        <input
+          type="hidden"
+          name="action"
+          id="actionInput"
+          value="answer"
+        >
+
+
+        <!-- =========================
+             RECORDING BUTTONS
+        ========================== -->
+
+        <div class="recorder-controls">
+
+          <button
+            type="button"
+            class="btn primary"
+            id="recordAnswerBtn"
+          >
+            🎙️ Record answer
+          </button>
+
+          <button
+            type="button"
+            class="btn ghost"
+            id="stopRecordingBtn"
+            disabled
+          >
+            ⏹ Stop recording
+          </button>
+
+          <span id="recordingStatus">
+            Microphone not enabled
+          </span>
+
+        </div>
+
+
+        <!-- =========================
+             ANSWERING BUTTONS
+        ========================== -->
+
+        <div class="voice-actions">
+
+          <button
+            type="button"
+            class="btn primary"
+            id="startBtn"
+          >
+            🎙️ Start answering
+          </button>
+
+          <button
+            type="button"
+            class="btn ghost"
+            id="stopBtn"
+            disabled
+          >
+            ⏹ Stop
+          </button>
+
+          <button
+            type="submit"
+            class="btn skip"
+            id="skipBtn"
+          >
+            Skip question →
+          </button>
+
+        </div>
+
+
+        <!-- =========================
+             ANSWER TEXTAREA
+        ========================== -->
+
+        <label
+          for="transcript"
+          style="display:block;margin-top:20px;"
+        >
+          <b>Your answer</b>
+        </label>
+
+        <textarea
+          id="transcript"
+          name="typed_answer"
+          rows="8"
+          placeholder="Speak after enabling the microphone, or type your answer here..."
+        ></textarea>
+
+
+        <!-- =========================
+             SUBMIT
+        ========================== -->
+
+        <button
+          type="submit"
+          class="btn primary full"
+          id="submitBtn"
+        >
+          Submit answer & continue →
+        </button>
+
+      </form>
+
+    </section>
+
+
+    <!-- =========================
+         RIGHT SIDE
+    ========================== -->
+
+    <aside>
+
+      <section class="card">
+
+        <div class="eyebrow">
+          SESSION
+        </div>
+
+        <h3 style="margin-top:0;">
+          Interview guidance
+        </h3>
+
+        <p style="font-size:12px;">
+          Answer naturally and explain your experience clearly.
+          Questions are generated from the candidate's resume.
+        </p>
+
+        <div class="chips">
+
+          <span>Technical</span>
+          <span>HR</span>
+          <span>Behavioural</span>
+          <span>Projects</span>
+          <span>Certifications</span>
+
+        </div>
+
+      </section>
+
+
+      <section class="card" style="margin-top:15px;">
+
+        <div class="eyebrow">
+          MICROPHONE
+        </div>
+
+        <p
+          id="micDebug"
+          style="font-size:11px;margin:0;"
+        >
+          Microphone not enabled
+        </p>
+
+        <div
+          id="alertLog"
+          class="alert-log"
+        >
+          <b>Activity</b>
+        </div>
+
+      </section>
+
+    </aside>
+
+  </div>
+
+  {% endif %}
+
+</main>
+
+
+<!-- =====================================================
+     INTERVIEW JAVASCRIPT
+====================================================== -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
+
+    const answerForm =
+        document.getElementById("answerForm");
+
+    const startBtn =
+        document.getElementById("startBtn");
+
+    const stopBtn =
+        document.getElementById("stopBtn");
+
+    const recordBtn =
+        document.getElementById("recordAnswerBtn");
+
+    const stopRecordBtn =
+        document.getElementById("stopRecordingBtn");
+
+    const skipBtn =
+        document.getElementById("skipBtn");
+
+    const submitBtn =
+        document.getElementById("submitBtn");
+
+    const enableMicBtn =
+        document.getElementById("enableMicBtn");
+
+    const transcript =
+        document.getElementById("transcript");
+
+    const answerInput =
+        document.getElementById("answerInput");
+
+    const actionInput =
+        document.getElementById("actionInput");
+
+    const voiceStatus =
+        document.getElementById("voiceStatus");
+
+    const recordingStatus =
+        document.getElementById("recordingStatus");
+
+    const micState =
+        document.getElementById("micState");
+
+    const micDebug =
+        document.getElementById("micDebug");
+
+    const noiseState =
+        document.getElementById("noiseState");
+
+    const mediaOverall =
+        document.getElementById("mediaOverall");
+
+    const mediaDebugError =
+        document.getElementById("mediaDebugError");
+
+    const alertLog =
+        document.getElementById("alertLog");
+
+    const progressFill =
+        document.getElementById("progressFill");
+
+    const questionProgress =
+        document.getElementById("questionProgress");
+
+    const progressPercentage =
+        document.getElementById("progressPercentage");
+
+
+    /* =====================================================
+       PROGRESS BAR
+
+       IMPORTANT:
+       We do NOT use:
+       style="width: {{ progress }}%;"
+
+       This avoids the template/CSS issue you were getting.
+    ===================================================== */
+
+    if (progressFill && questionProgress) {
+
+        const current =
+            parseInt(
+                questionProgress.dataset.current || "1",
+                10
+            );
+
+        const total =
+            parseInt(
+                questionProgress.dataset.total || "30",
+                10
+            );
+
+        let percent =
+            Math.round((current / total) * 100);
+
+        percent =
+            Math.max(0, Math.min(100, percent));
+
+        progressFill.style.width =
+            percent + "%";
+
+        if (progressPercentage) {
+            progressPercentage.textContent =
+                percent + "%";
+        }
+    }
+
+
+    /* =====================================================
+       STATE
+    ===================================================== */
+
+    let mediaStream = null;
+
+    let audioRecorder = null;
+
+    let recordedChunks = [];
+
+    let audioContext = null;
+
+    let analyser = null;
+
+    let animationId = null;
+
+    let mediaRequestInProgress = false;
+
+    let transcriptionInProgress = false;
+
+    let isSubmitting = false;
+
+    let isRecording = false;
+
+
+    /* =====================================================
+       LOG
+    ===================================================== */
+
+    function addStatus(message) {
+
+        if (!alertLog) {
+            return;
+        }
+
+        const p =
+            document.createElement("p");
+
+        p.textContent =
+            new Date().toLocaleTimeString() +
+            " · " +
+            message;
+
+        alertLog.appendChild(p);
+
+        while (alertLog.children.length > 7) {
+            alertLog.removeChild(
+                alertLog.children[1]
+            );
+        }
+    }
+
+
+    /* =====================================================
+       METER
+    ===================================================== */
+
+    function setMeter(value) {
+
+        const width =
+            Math.min(
+                100,
+                Math.max(2, value)
+            );
+
+        const meter =
+            document.getElementById(
+                "micMeterFill"
+            );
+
+        if (meter) {
+            meter.style.width =
+                width + "%";
+        }
+    }
+
+
+    /* =====================================================
+       MICROPHONE ERROR
+    ===================================================== */
+
+    function friendlyMicError(err) {
+
+        const name =
+            err && err.name
+                ? err.name
+                : "";
+
+        if (
+            name === "NotAllowedError" ||
+            name === "PermissionDeniedError"
+        ) {
+            return (
+                "Microphone permission was denied. " +
+                "Allow microphone access in the browser."
+            );
+        }
+
+        if (
+            name === "NotFoundError" ||
+            name === "DevicesNotFoundError"
+        ) {
+            return (
+                "No microphone was detected. " +
+                "Connect a microphone and try again."
+            );
+        }
+
+        if (
+            name === "NotReadableError" ||
+            name === "TrackStartError"
+        ) {
+            return (
+                "The microphone is being used by another application."
+            );
+        }
+
+        if (!window.isSecureContext) {
+            return (
+                "Microphone access requires localhost or HTTPS."
+            );
+        }
+
+        return (
+            name ||
+            "Microphone error"
+        ) +
+        ": " +
+        (
+            err && err.message
+                ? err.message
+                : "Could not access microphone."
+        );
+    }
+
+
+    /* =====================================================
+       STOP LEVEL METER
+    ===================================================== */
+
+    function stopLevelMeter() {
+
+        if (animationId) {
+
+            cancelAnimationFrame(
+                animationId
+            );
+
+            animationId = null;
+        }
+
+        if (audioContext) {
+
+            try {
+                audioContext.close();
+            } catch (e) {}
+
+            audioContext = null;
+        }
+
+        analyser = null;
+
+        setMeter(2);
+    }
+
+
+    /* =====================================================
+       STOP MICROPHONE
+    ===================================================== */
+
+    function stopMediaStream() {
+
+        if (mediaStream) {
+
+            mediaStream
+                .getTracks()
+                .forEach(function (track) {
+
+                    try {
+                        track.stop();
+                    } catch (e) {}
+
+                });
+
+            mediaStream = null;
+        }
+
+        stopLevelMeter();
+    }
+
+
+    /* =====================================================
+       AUDIO LEVEL METER
+    ===================================================== */
+
+    function setupLevelMeter(stream) {
+
+        try {
+
+            const AudioContextClass =
+                window.AudioContext ||
+                window.webkitAudioContext;
+
+            if (!AudioContextClass) {
+                return;
+            }
+
+            audioContext =
+                new AudioContextClass();
+
+            analyser =
+                audioContext.createAnalyser();
+
+            analyser.fftSize = 512;
+
+            analyser.smoothingTimeConstant =
+                0.75;
+
+            const source =
+                audioContext.createMediaStreamSource(
+                    stream
+                );
+
+            source.connect(analyser);
+
+            const data =
+                new Uint8Array(
+                    analyser.fftSize
+                );
+
+            function tick() {
+
+                if (!analyser) {
+                    return;
+                }
+
+                analyser.getByteTimeDomainData(
+                    data
+                );
+
+                let sum = 0;
+
+                for (
+                    let i = 0;
+                    i < data.length;
+                    i++
+                ) {
+
+                    const value =
+                        (data[i] - 128) / 128;
+
+                    sum +=
+                        value * value;
+                }
+
+                const rms =
+                    Math.sqrt(
+                        sum / data.length
+                    );
+
+                setMeter(
+                    rms * 650
+                );
+
+                if (noiseState) {
+
+                    if (rms < 0.012) {
+                        noiseState.textContent =
+                            "Quiet";
+                    }
+                    else if (rms > 0.12) {
+                        noiseState.textContent =
+                            "High";
+                    }
+                    else {
+                        noiseState.textContent =
+                            "Active";
+                    }
+                }
+
+                animationId =
+                    requestAnimationFrame(
+                        tick
+                    );
+            }
+
+            tick();
+
+        } catch (error) {
+
+            if (noiseState) {
+                noiseState.textContent =
+                    "Ready";
+            }
+        }
+    }
+
+
+    /* =====================================================
+       ENABLE MICROPHONE
+
+       IMPORTANT:
+       AUDIO ONLY.
+       NO CAMERA.
+    ===================================================== */
+
+    async function initializeMicrophone() {
+
+        if (mediaRequestInProgress) {
+            return false;
+        }
+
+        if (
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ) {
+
+            const message =
+                "This browser does not support microphone access.";
+
+            if (voiceStatus) {
+                voiceStatus.textContent =
+                    "⚠️ " + message;
+            }
+
+            return false;
+        }
+
+        if (!window.isSecureContext) {
+
+            const message =
+                "Microphone access requires localhost or HTTPS.";
+
+            if (voiceStatus) {
+                voiceStatus.textContent =
+                    "⚠️ " + message;
+            }
+
+            if (mediaDebugError) {
+                mediaDebugError.textContent =
+                    message;
+            }
+
+            return false;
+        }
+
+        mediaRequestInProgress = true;
+
+        if (enableMicBtn) {
+            enableMicBtn.disabled = true;
+            enableMicBtn.textContent =
+                "⏳ Requesting microphone...";
+        }
+
+        try {
+
+            stopMediaStream();
+
+            /*
+             * CRITICAL:
+             * Only audio is requested.
+             * There is NO video:true anywhere.
+             */
+
+            mediaStream =
+                await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+            const tracks =
+                mediaStream.getAudioTracks();
+
+            const liveTrack =
+                tracks.find(function (track) {
+                    return track.readyState === "live";
+                });
+
+            if (!liveTrack) {
+                throw new Error(
+                    "Microphone track did not start."
+                );
+            }
+
+            if (micState) {
+                micState.textContent =
+                    "Working";
+            }
+
+            if (micDebug) {
+                micDebug.textContent =
+                    "Working";
+            }
+
+            if (mediaOverall) {
+                mediaOverall.textContent =
+                    "Ready";
+            }
+
+            if (recordingStatus) {
+                recordingStatus.textContent =
+                    "Ready to record";
+            }
+
+            if (voiceStatus) {
+                voiceStatus.textContent =
+                    "🎙️ Microphone working — click Start answering";
+            }
+
+            if (enableMicBtn) {
+                enableMicBtn.textContent =
+                    "✓ Microphone enabled";
+            }
+
+            if (mediaDebugError) {
+                mediaDebugError.textContent = "";
+            }
+
+            setupLevelMeter(
+                mediaStream
+            );
+
+            tracks.forEach(function (track) {
+
+                track.onended =
+                    function () {
+
+                        if (micState) {
+                            micState.textContent =
+                                "Stopped";
+                        }
+
+                        if (mediaOverall) {
+                            mediaOverall.textContent =
+                                "Interrupted";
+                        }
+
+                        if (voiceStatus) {
+                            voiceStatus.textContent =
+                                "⚠️ Microphone stopped. Retry microphone.";
+                        }
+
+                        if (enableMicBtn) {
+                            enableMicBtn.disabled =
+                                false;
+
+                            enableMicBtn.textContent =
+                                "🎙️ Retry microphone";
+                        }
+
+                    };
+            });
+
+            addStatus(
+                "Microphone enabled."
+            );
+
+            mediaRequestInProgress =
+                false;
+
+            return true;
+
+        } catch (error) {
+
+            stopMediaStream();
+
+            const message =
+                friendlyMicError(error);
+
+            if (micState) {
+                micState.textContent =
+                    "Unavailable";
+            }
+
+            if (mediaOverall) {
+                mediaOverall.textContent =
+                    "Failed";
+            }
+
+            if (voiceStatus) {
+                voiceStatus.textContent =
+                    "⚠️ " + message;
+            }
+
+            if (recordingStatus) {
+                recordingStatus.textContent =
+                    "Microphone unavailable";
+            }
+
+            if (mediaDebugError) {
+                mediaDebugError.textContent =
+                    message;
+            }
+
+            if (enableMicBtn) {
+
+                enableMicBtn.disabled =
+                    false;
+
+                enableMicBtn.textContent =
+                    "🎙️ Retry microphone";
+            }
+
+            addStatus(message);
+
+            mediaRequestInProgress =
+                false;
+
+            return false;
+        }
+    }
+
+
+    /* =====================================================
+       RECORDER MIME
+    ===================================================== */
+
+    function supportedRecorderMime() {
+
+        if (!window.MediaRecorder) {
+            return "";
+        }
+
+        const candidates = [
+            "audio/webm;codecs=opus",
+            "audio/webm",
+            "audio/ogg;codecs=opus",
+            "audio/mp4"
+        ];
+
+        for (
+            let i = 0;
+            i < candidates.length;
+            i++
+        ) {
+
+            if (
+                MediaRecorder.isTypeSupported &&
+                MediaRecorder.isTypeSupported(
+                    candidates[i]
+                )
+            ) {
+                return candidates[i];
+            }
+        }
+
+        return "";
+    }
+
+
+    /* =====================================================
+       START RECORDER
+    ===================================================== */
+
+    function startAudioRecorder() {
+
+        if (
+            !mediaStream ||
+            !window.MediaRecorder
+        ) {
+            return false;
+        }
+
+        const tracks =
+            mediaStream
+                .getAudioTracks()
+                .filter(function (track) {
+                    return track.readyState === "live";
+                });
+
+        if (!tracks.length) {
+            return false;
+        }
+
+        recordedChunks = [];
+
+        try {
+
+            const mime =
+                supportedRecorderMime();
+
+            const audioOnlyStream =
+                new MediaStream(tracks);
+
+            if (mime) {
+
+                audioRecorder =
+                    new MediaRecorder(
+                        audioOnlyStream,
+                        {
+                            mimeType: mime
+                        }
+                    );
+
+            } else {
+
+                audioRecorder =
+                    new MediaRecorder(
+                        audioOnlyStream
+                    );
+            }
+
+            audioRecorder.ondataavailable =
+                function (event) {
+
+                    if (
+                        event.data &&
+                        event.data.size
+                    ) {
+                        recordedChunks.push(
+                            event.data
+                        );
+                    }
+                };
+
+            audioRecorder.onstart =
+                function () {
+
+                    isRecording = true;
+
+                    if (recordingStatus) {
+                        recordingStatus.textContent =
+                            "🔴 Recording microphone...";
+                    }
+                };
+
+            audioRecorder.onerror =
+                function () {
+
+                    isRecording = false;
+
+                    if (recordingStatus) {
+                        recordingStatus.textContent =
+                            "Audio recording error.";
+                    }
+                };
+
+            audioRecorder.start();
+
+            return true;
+
+        } catch (error) {
+
+            addStatus(
+                "Could not start audio recorder."
+            );
+
+            return false;
+        }
+    }
+
+
+    /* =====================================================
+       STOP + GROQ TRANSCRIPTION
+    ===================================================== */
+
+    async function stopAudioRecorderAndTranscribe() {
+
+        if (
+            !audioRecorder ||
+            audioRecorder.state === "inactive"
+        ) {
+            return "";
+        }
+
+        if (transcriptionInProgress) {
+            return "";
+        }
+
+        transcriptionInProgress = true;
+
+        if (recordingStatus) {
+            recordingStatus.textContent =
+                "⏳ Transcribing answer...";
+        }
+
+        const recorder =
+            audioRecorder;
+
+        const stopped =
+            new Promise(function (resolve) {
+
+                recorder.addEventListener(
+                    "stop",
+                    resolve,
+                    {
+                        once: true
+                    }
+                );
+
+            });
+
+        try {
+
+            recorder.stop();
+
+        } catch (error) {
+
+            transcriptionInProgress =
+                false;
+
+            return "";
+        }
+
+        await stopped;
+
+        isRecording = false;
+
+        const blob =
+            new Blob(
+                recordedChunks,
+                {
+                    type:
+                        recorder.mimeType ||
+                        "audio/webm"
+                }
+            );
+
+        if (!blob.size) {
+
+            transcriptionInProgress =
+                false;
+
+            if (recordingStatus) {
+                recordingStatus.textContent =
+                    "No audio captured.";
+            }
+
+            return "";
+        }
+
+        const formData =
+            new FormData();
+
+        let extension = "webm";
+
+        if (
+            blob.type.includes("ogg")
+        ) {
+            extension = "ogg";
+        }
+        else if (
+            blob.type.includes("mp4")
+        ) {
+            extension = "mp4";
+        }
+
+        formData.append(
+            "audio",
+            blob,
+            "interview-answer." +
+            extension
+        );
+
+        try {
+
+            const response =
+                await fetch(
+                    "{{ url_for('transcribe_api') }}",
+                    {
+                        method: "POST",
+                        body: formData,
+                        credentials: "same-origin"
+                    }
+                );
+
+            const data =
+                await response
+                    .json()
+                    .catch(function () {
+                        return {};
+                    });
+
+            if (
+                response.ok &&
+                data.ok &&
+                data.text
+            ) {
+
+                transcriptionInProgress =
+                    false;
+
+                if (recordingStatus) {
+                    recordingStatus.textContent =
+                        "✓ Answer transcribed";
+                }
+
+                addStatus(
+                    "Answer transcribed successfully."
+                );
+
+                return data.text.trim();
+            }
+
+            addStatus(
+                data.error ||
+                "Speech transcription failed."
+            );
+
+        } catch (error) {
+
+            addStatus(
+                "Could not reach transcription service."
+            );
+        }
+
+        transcriptionInProgress =
+            false;
+
+        if (recordingStatus) {
+            recordingStatus.textContent =
+                "⚠️ Transcription failed. Type your answer instead.";
+        }
+
+        return "";
+    }
+
+
+    /* =====================================================
+       BEGIN ANSWER
+    ===================================================== */
+
+    async function beginAnswer() {
+
+        if (isSubmitting) {
+            return;
+        }
+
+        if (!mediaStream) {
+
+            const enabled =
+                await initializeMicrophone();
+
+            if (!enabled) {
+                return;
+            }
+        }
+
+        if (
+            audioContext &&
+            audioContext.state === "suspended"
+        ) {
+
+            try {
+                await audioContext.resume();
+            } catch (e) {}
+        }
+
+        if (transcript) {
+            transcript.value = "";
+        }
+
+        if (answerInput) {
+            answerInput.value = "";
+        }
+
+        if (actionInput) {
+            actionInput.value = "answer";
+        }
+
+        const started =
+            startAudioRecorder();
+
+        if (!started) {
+
+            if (voiceStatus) {
+                voiceStatus.textContent =
+                    "⚠️ Recording is unavailable. You can type your answer.";
+            }
+
+            return;
+        }
+
+        if (startBtn) {
+            startBtn.disabled = true;
+        }
+
+        if (recordBtn) {
+            recordBtn.disabled = true;
+        }
+
+        if (stopBtn) {
+            stopBtn.disabled = false;
+        }
+
+        if (stopRecordBtn) {
+            stopRecordBtn.disabled = false;
+        }
+
+        if (voiceStatus) {
+            voiceStatus.textContent =
+                "🔴 Listening... speak clearly.";
+        }
+    }
+
+
+    /* =====================================================
+       END ANSWER
+    ===================================================== */
+
+    async function endAnswer() {
+
+        if (!isRecording) {
+            return;
+        }
+
+        if (stopBtn) {
+            stopBtn.disabled = true;
+        }
+
+        if (stopRecordBtn) {
+            stopRecordBtn.disabled = true;
+        }
+
+        const text =
+            await stopAudioRecorderAndTranscribe();
+
+        if (text) {
+
+            if (transcript) {
+                transcript.value =
+                    text;
+            }
+
+            if (answerInput) {
+                answerInput.value =
+                    text;
+            }
+
+            if (voiceStatus) {
+                voiceStatus.textContent =
+                    "✓ Answer captured. Review it and submit.";
+            }
+
+        } else {
+
+            if (voiceStatus) {
+                voiceStatus.textContent =
+                    "⚠️ No transcription returned. You can type your answer.";
+            }
+        }
+
+        if (startBtn) {
+            startBtn.disabled = false;
+        }
+
+        if (recordBtn) {
+            recordBtn.disabled = false;
+        }
+    }
+
+
+    /* =====================================================
+       ENABLE MICROPHONE
+    ===================================================== */
+
+    if (enableMicBtn) {
+
+        enableMicBtn.addEventListener(
+            "click",
+            initializeMicrophone
+        );
+    }
+
+
+    /* =====================================================
+       START
+    ===================================================== */
+
+    if (startBtn) {
+
+        startBtn.addEventListener(
+            "click",
+            beginAnswer
+        );
+    }
+
+
+    /* =====================================================
+       STOP
+    ===================================================== */
+
+    if (stopBtn) {
+
+        stopBtn.addEventListener(
+            "click",
+            endAnswer
+        );
+    }
+
+
+    /* =====================================================
+       MANUAL RECORD
+    ===================================================== */
+
+    if (recordBtn) {
+
+        recordBtn.addEventListener(
+            "click",
+            async function () {
+
+                if (!mediaStream) {
+
+                    const enabled =
+                        await initializeMicrophone();
+
+                    if (!enabled) {
+                        return;
+                    }
+                }
+
+                const started =
+                    startAudioRecorder();
+
+                if (!started) {
+                    return;
+                }
+
+                recordBtn.disabled =
+                    true;
+
+                stopRecordBtn.disabled =
+                    false;
+
+                if (voiceStatus) {
+                    voiceStatus.textContent =
+                        "🔴 Recording microphone...";
+                }
+            }
+        );
+    }
+
+
+    /* =====================================================
+       MANUAL STOP RECORDING
+    ===================================================== */
+
+    if (stopRecordBtn) {
+
+        stopRecordBtn.addEventListener(
+            "click",
+            async function () {
+
+                stopRecordBtn.disabled =
+                    true;
+
+                const text =
+                    await stopAudioRecorderAndTranscribe();
+
+                if (text) {
+
+                    if (transcript) {
+                        transcript.value =
+                            text;
+                    }
+
+                    if (answerInput) {
+                        answerInput.value =
+                            text;
+                    }
+
+                    if (voiceStatus) {
+                        voiceStatus.textContent =
+                            "✓ Answer transcribed. Review it and submit.";
+                    }
+                }
+
+                recordBtn.disabled =
+                    false;
+            }
+        );
+    }
+
+
+    /* =====================================================
+       TEXTAREA -> HIDDEN ANSWER
+    ===================================================== */
+
+    if (transcript) {
+
+        transcript.addEventListener(
+            "input",
+            function () {
+
+                if (
+                    actionInput &&
+                    actionInput.value !== "skip"
+                ) {
+
+                    if (answerInput) {
+                        answerInput.value =
+                            transcript.value.trim();
+                    }
+                }
+            }
+        );
+    }
+
+
+    /* =====================================================
+       FORM SUBMIT
+
+       IMPORTANT:
+       Only ONE submit handler.
+    ===================================================== */
+
+    if (answerForm) {
+
+        answerForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                if (isSubmitting) {
+
+                    event.preventDefault();
+                    return;
+                }
+
+                const clickedButton =
+                    event.submitter;
+
+
+                /* =========================
+                   SKIP
+                ========================= */
+
+                if (
+                    clickedButton &&
+                    clickedButton.id === "skipBtn"
+                ) {
+
+                    isSubmitting = true;
+
+                    if (actionInput) {
+                        actionInput.value =
+                            "skip";
+                    }
+
+                    if (answerInput) {
+                        answerInput.value =
+                            "";
+                    }
+
+                    skipBtn.disabled =
+                        true;
+
+                    skipBtn.textContent =
+                        "Skipping...";
+
+                    /*
+                     * Do not wait for microphone
+                     * or transcription.
+                     *
+                     * This makes Skip immediate.
+                     */
+
+                    stopMediaStream();
+
+                    return;
+                }
+
+
+                /* =========================
+                   NORMAL ANSWER
+                ========================= */
+
+                const text =
+                    transcript
+                        ? transcript.value.trim()
+                        : "";
+
+                if (text.length < 3) {
+
+                    event.preventDefault();
+
+                    if (recordingStatus) {
+                        recordingStatus.textContent =
+                            "⚠️ Please provide an answer before continuing.";
+                    }
+
+                    return;
+                }
+
+
+                if (actionInput) {
+                    actionInput.value =
+                        "answer";
+                }
+
+                if (answerInput) {
+                    answerInput.value =
+                        text;
+                }
+
+
+                /*
+                 * Lock immediately.
+                 *
+                 * This prevents double-clicks.
+                 */
+
+                isSubmitting = true;
+
+                if (submitBtn) {
+
+                    submitBtn.disabled =
+                        true;
+
+                    submitBtn.textContent =
+                        "Saving answer...";
+                }
+
+                if (skipBtn) {
+                    skipBtn.disabled =
+                        true;
+                }
+
+
+                /*
+                 * Stop microphone after
+                 * answer has already been
+                 * copied to hidden input.
+                 */
+
+                stopMediaStream();
+
+                /*
+                 * Allow normal form POST.
+                 *
+                 * No unnecessary fetch.
+                 * No extra API call.
+                 */
+            }
+        );
+    }
+
+
+    /* =====================================================
+       PAGE LEAVE CLEANUP
+    ===================================================== */
+
+    window.addEventListener(
+        "beforeunload",
+        function () {
+            stopMediaStream();
+        }
+    );
+
+
+    /* =====================================================
+       INITIAL STATE
+    ===================================================== */
+
+    if (window.MediaRecorder) {
+
+        if (recordingStatus) {
+            recordingStatus.textContent =
+                "Microphone not enabled";
+        }
+
+    } else {
+
+        if (recordingStatus) {
+            recordingStatus.textContent =
+                "Audio recording is not supported by this browser. Type your answer instead.";
+        }
+
+        if (recordBtn) {
+            recordBtn.disabled = true;
+        }
+
+        if (stopRecordBtn) {
+            stopRecordBtn.disabled = true;
+        }
+    }
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Suggested Answers · Resume2Interview AI{% endblock %}
+{% block content %}
+<main class="page">
+  <div class="topline">
+    <div>
+      <div class="eyebrow">INTERVIEW COACH</div>
+      <h1>Suggested answers</h1>
+      <p>Review a resume-grounded answer for every generated question before starting the live interview.</p>
+    </div>
+    <div class="actions">
+      <a class="btn ghost" href="{{ url_for('result', sid=s.id) }}">Back to preparation</a>
+      <a class="btn primary" href="{{ url_for('interview', sid=s.id) }}">Start live interview →</a>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:22px;padding:18px 22px;">
+    <b>{{ items|length }} generated question{{ '' if items|length == 1 else 's' }}</b>
+    {% if pre_interview %}
+      <span class="muted"> · Pre-interview study mode — no answer is required to view these suggestions.</span>
+    {% elif completed %}
+      <span class="muted"> · Interview completed</span>
+    {% else %}
+      <span class="muted"> · Live interview in progress</span>
+    {% endif %}
+  </div>
+
+  <div class="suggested-list">
+    {% for item in items %}
+    <article class="card suggested-card">
+      <span class="badge">{{ item.question.type|default('Interview') }}</span>
+      {% if item.question.skill %}<span class="difficulty">{{ item.question.skill }}</span>{% endif %}
+      <h2>{{ loop.index }}. {{ item.question.question }}</h2>
+
+      {% if item.answer %}
+        <div class="your-answer"><small>YOUR ANSWER</small><p>{{ item.answer }}</p></div>
+        {% if item.evaluation %}
+          <div class="answer-score">Score <b>{{ item.evaluation.overall|default(0) }} / 10</b>{% if item.evaluation.feedback %} · {{ item.evaluation.feedback }}{% endif %}</div>
+        {% endif %}
+      {% else %}
+        <div class="your-answer"><small>YOUR ANSWER</small><p class="muted">Not answered yet — this suggestion is available for preparation.</p></div>
+      {% endif %}
+
+      <details open>
+        <summary>💡 Suggested answer for this exact question</summary>
+        <p class="suggested-text">{{ item.suggested_answer }}</p>
+      </details>
+    </article>
+    {% endfor %}
+  </div>
+</main>
+{% endblock %}

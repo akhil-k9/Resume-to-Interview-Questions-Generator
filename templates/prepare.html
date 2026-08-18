@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Prepare · Resume2Interview AI
+{% endblock %}
+
+{% block content %}
+
+<main class="page narrow">
+
+  <div class="topline">
+<div>
+
+  <div class="eyebrow">
+    STEP 01 · UNDERSTAND THE JOB
+  </div>
+
+  <h1>
+    Build your interview.
+  </h1>
+
+  <p>
+    Upload your resume and target JD.
+    GenAI + RAG will ground every question in your evidence.
+  </p>
+
+</div>
+
+  </div>
+
+  <form
+    class="card formgrid"
+    method="post"
+    enctype="multipart/form-data"
+  >
+<label>
+
+  Target role
+
+  <input
+    name="job_role"
+    placeholder="e.g. Software Engineer Intern"
+    required
+  >
+
+</label>
+
+
+<label class="fullrow">
+
+  Job description
+
+  <textarea
+    name="job_desc"
+    rows="9"
+    placeholder="Paste the complete job description here..."
+    required
+  ></textarea>
+
+</label>
+
+
+<label class="upload fullrow">
+
+  <span>
+    📄 Upload resume
+  </span>
+
+  <input
+    type="file"
+    name="resume"
+    accept=".pdf,.docx,.txt"
+    required
+  >
+
+  <small>
+    PDF, DOCX or TXT · max 8 MB
+  </small>
+
+</label>
+
+
+<div class="fullrow">
+
+  <button
+    type="submit"
+    class="btn primary full"
+  >
+    Analyze resume + JD and generate 30 questions →
+  </button>
+
+</div>
+
+  </form>
+
+  <div class="info-grid">
+<div class="info-card">
+
+  <b>
+    RAG grounded
+  </b>
+
+  <p>
+    Relevant resume and JD chunks are retrieved before generation.
+  </p>
+
+</div>
+
+
+<div class="info-card">
+
+  <b>
+    No fabricated experience
+  </b>
+
+  <p>
+    Resume suggestions are constrained to evidence you actually provide.
+  </p>
+
+</div>
+
+
+<div class="info-card">
+
+  <b>
+    30 questions
+  </b>
+
+  <p>
+    10 Technical · 5 HR · 5 Behavioural ·
+    6 Projects · 4 Certifications.
+  </p>
+
+</div>
+
+  </div>
+
+</main>
+
+{% endblock %}

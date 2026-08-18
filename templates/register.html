@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Register · Resume2Interview AI
+{% endblock %}
+
+{% block content %}
+
+<div class="auth">
+
+  <div class="authbox">
+<div class="eyebrow">
+  START YOUR PREP
+</div>
+
+<h1>
+  Create account
+</h1>
+
+<p>
+  Your interviews and analytics stay tied to your account.
+</p>
+
+
+<form method="post">
+
+  <label>
+
+    Full name
+
+    <input
+      type="text"
+      name="name"
+      required
+    >
+
+  </label>
+
+
+  <label>
+
+    Email
+
+    <input
+      type="email"
+      name="email"
+      required
+    >
+
+  </label>
+
+
+  <label>
+
+    Password
+
+    <input
+      type="password"
+      name="password"
+      minlength="6"
+      required
+    >
+
+  </label>
+
+
+  <button
+    type="submit"
+    class="btn primary full"
+  >
+    Create account
+  </button>
+
+</form>
+
+
+<div class="switch">
+
+  Already registered?
+
+  <a href="{{ url_for('login') }}">
+    Login
+  </a>
+
+</div>
+
+  </div>
+
+</div>
+
+{% endblock %}

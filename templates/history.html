@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}
+History · Resume2Interview AI
+{% endblock %}
+
+{% block content %}
+
+<main class="page">
+
+  <div class="sectionhead left">
+<span>
+  PROGRESS OVER TIME
+</span>
+
+<h1>
+  Interview history
+</h1>
+
+<p>
+  Repeat interviews and watch your readiness improve.
+</p>
+
+  </div>
+
+{% if sessions %}
+
+<div class="list">
+
+  {% for s in sessions %}
+
+    <div class="row">
+
+      <div>
+
+        <b>
+          {{ s.job_role }}
+        </b>
+
+        <small>
+          {{ s.created_at.strftime('%d %b %Y, %I:%M %p') }}
+          ·
+          {{ s.status }}
+        </small>
+
+      </div>
+
+      <div class="rowright">
+
+        <span class="badge">
+          {{ s.readiness_score or 0 }}%
+        </span>
+
+        <a href="{{ url_for('analytics', sid=s.id) }}">
+          Analytics
+        </a>
+
+        <a href="{{ url_for('result', sid=s.id) }}">
+          Open
+        </a>
+
+        <form
+          method="post"
+          action="{{ url_for('delete_session', sid=s.id) }}"
+        >
+
+          <button
+            type="submit"
+            class="delete"
+          >
+            Delete
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  {% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="empty card">
+
+  <h3>
+    No history yet
+  </h3>
+
+</div>
+
+{% endif %}
+
+</main>
+
+{% endblock %}

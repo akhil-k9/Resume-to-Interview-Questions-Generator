@@ -1,0 +1,509 @@
+{% extends 'base.html' %}
+
+{% block title %}Resume Intelligence · Resume2Interview AI{% endblock %}
+
+{% block content %}
+
+<main class="page">
+
+    <!-- =========================
+         PAGE HEADER
+    ========================== -->
+
+    <div class="topline">
+
+        <div>
+
+            <div class="eyebrow">
+                STEP 02 · RESUME INTELLIGENCE
+            </div>
+
+            <h1>{{ s.job_role }}</h1>
+
+            <p>
+                Your candidate profile is ready. Review the match and study
+                your resume-grounded questions before starting the live interview.
+            </p>
+
+        </div>
+
+        <div class="actions">
+
+            <a
+                class="btn ghost"
+                href="{{ url_for('resume_improvement', sid=s.id) }}"
+            >
+                Improve my resume
+            </a>
+
+            <a
+                class="btn ghost"
+                href="{{ url_for('suggested_answers', sid=s.id) }}"
+            >
+                💡 Study suggested answers
+            </a>
+
+            <a
+                class="btn primary"
+                href="{{ url_for('interview', sid=s.id) }}"
+            >
+                Start live interview →
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         HERO METRICS
+    ========================== -->
+
+    <div class="hero-metrics">
+
+        <!-- JD MATCH -->
+
+        <div class="metriccard card">
+
+            <span>
+                JD MATCH
+            </span>
+
+            <strong id="matchScore">
+                {{ analysis.match }}%
+            </strong>
+
+            <span
+                id="matchScoreValue"
+                hidden
+            >
+                {{ analysis.match }}
+            </span>
+
+            <div class="bar">
+
+                <span
+                    id="matchProgressBar"
+                    class="score-bar"
+                ></span>
+
+            </div>
+
+        </div>
+
+
+        <!-- SKILLS DETECTED -->
+
+        <div class="metriccard card">
+
+            <span>
+                SKILLS DETECTED
+            </span>
+
+            <strong>
+                {{ skills|length }}
+            </strong>
+
+            <small>
+                {{ skills[:7]|join(', ') }}
+            </small>
+
+        </div>
+
+
+        <!-- QUESTION SET -->
+
+        <div class="metriccard card">
+
+            <span>
+                QUESTION SET
+            </span>
+
+            <strong>
+                {{ questions|length }}
+            </strong>
+
+            <small>
+                Resume-grounded + adaptive
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         SKILL ALIGNMENT / RESUME
+    ========================== -->
+
+    <div class="grid2">
+
+        <!-- SKILL ALIGNMENT -->
+
+        <div class="card">
+
+            <div class="sectionhead left">
+
+                <span>
+                    SKILL ALIGNMENT
+                </span>
+
+                <h2>
+                    What the JD asks for
+                </h2>
+
+            </div>
+
+            <div class="chips">
+
+                {% for x in analysis.matched_skills[:12] %}
+
+                    <span class="good">
+                        ✓ {{ x }}
+                    </span>
+
+                {% endfor %}
+
+                {% for x in analysis.missing_skills[:10] %}
+
+                    <span class="bad">
+                        + {{ x }}
+                    </span>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- RESUME IMPROVEMENT -->
+
+        <div class="card">
+
+            <div class="sectionhead left">
+
+                <span>
+                    RESUME IMPROVEMENT
+                </span>
+
+                <h2>
+                    Quick wins
+                </h2>
+
+            </div>
+
+            {% for x in analysis.resume_suggestions[:4] %}
+
+                <div class="recommend">
+
+                    <b>
+                        •
+                    </b>
+
+                    <p>
+                        {{ x }}
+                    </p>
+
+                </div>
+
+            {% endfor %}
+
+            <a
+                href="{{ url_for('resume_improvement', sid=s.id) }}"
+                class="text-link"
+            ></a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         QUESTION BANK
+    ========================== -->
+
+    <div class="sectionhead left">
+
+        <span>
+            QUESTION BANK
+        </span>
+
+        <h2>
+            Resume-grounded interview questions
+        </h2>
+
+        <p>
+            Questions are generated only from evidence found in the uploaded
+            resume. Each category is shown separately so you can prepare by topic.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         CATEGORY SUMMARY
+    ========================== -->
+
+    <div class="category-tabs">
+
+        {% set category_order = [
+            'Technical',
+            'Projects',
+            'HR',
+            'Behavioural',
+            'Certifications'
+        ] %}
+
+        {% for category in category_order %}
+
+            {% set category_questions = questions
+                | selectattr('type', 'equalto', category)
+                | list %}
+
+            {% if category_questions %}
+
+                <span>
+                    {{ category }} · {{ category_questions|length }}
+                </span>
+
+            {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- =========================
+         SEPARATE QUESTION SECTIONS
+    ========================== -->
+
+    {% for category in category_order %}
+
+        {% set category_questions = questions
+            | selectattr('type', 'equalto', category)
+            | list %}
+
+        {% if category_questions %}
+
+            <section class="question-category">
+
+                <!-- CATEGORY HEADING -->
+
+                <div class="sectionhead left">
+
+                    {% if category == 'Technical' %}
+
+                        <span>
+                            TECHNICAL / SKILLS
+                        </span>
+
+                        <h2>
+                            Technical Questions
+                        </h2>
+
+                        <p>
+                            Questions based on skills and technologies
+                            explicitly detected in the resume.
+                        </p>
+
+                    {% elif category == 'Projects' %}
+
+                        <span>
+                            PROJECT EXPERIENCE
+                        </span>
+
+                        <h2>
+                            Project Questions
+                        </h2>
+
+                        <p>
+                            Questions referencing projects and project
+                            evidence from the resume.
+                        </p>
+
+                    {% elif category == 'HR' %}
+
+                        <span>
+                            HR INTERVIEW
+                        </span>
+
+                        <h2>
+                            HR Questions
+                        </h2>
+
+                        <p>
+                            Resume-grounded questions about strengths,
+                            learning and role readiness.
+                        </p>
+
+                    {% elif category == 'Behavioural' %}
+
+                        <span>
+                            BEHAVIOURAL
+                        </span>
+
+                        <h2>
+                            Behavioral Questions
+                        </h2>
+
+                        <p>
+                            Questions connected to documented projects,
+                            experience, education or achievements.
+                        </p>
+
+                    {% elif category == 'Certifications' %}
+
+                        <span>
+                            CERTIFICATIONS
+                        </span>
+
+                        <h2>
+                            Certification Questions
+                        </h2>
+
+                        <p>
+                            Questions based only on certifications
+                            actually detected in the resume.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- QUESTIONS -->
+
+                <div class="qgrid">
+
+                    {% for q in category_questions %}
+
+                        <div class="qcard">
+
+                            <div>
+
+                                <span class="badge">
+                                    {{ q.type }}
+                                </span>
+
+                                {% if q.difficulty %}
+
+                                    <span class="difficulty">
+                                        {{ q.difficulty }}
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                            <h3>
+                                {{ loop.index }}.
+                                {{ q.question }}
+                            </h3>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+        {% endif %}
+
+    {% endfor %}
+
+
+    <!-- =========================
+         EMPTY QUESTION STATE
+    ========================== -->
+
+    {% if not questions %}
+
+        <div class="card">
+
+            <div class="sectionhead left">
+
+                <span>
+                    QUESTION BANK
+                </span>
+
+                <h2>
+                    No questions available yet
+                </h2>
+
+            </div>
+
+            <p>
+                Upload a valid resume and generate an interview question set
+                to continue.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</main>
+
+
+<!-- ==================================================
+     MATCH SCORE PROGRESS BAR
+================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const scoreElement =
+            document.getElementById(
+                "matchScoreValue"
+            );
+
+        const progressBar =
+            document.getElementById(
+                "matchProgressBar"
+            );
+
+        if (
+            !scoreElement ||
+            !progressBar
+        ) {
+            return;
+        }
+
+        const rawScore =
+            scoreElement.textContent.trim();
+
+        const score =
+            Number(rawScore);
+
+        if (!Number.isFinite(score)) {
+
+            progressBar.style.width =
+                "0%";
+
+            return;
+
+        }
+
+        const safeScore =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    score
+                )
+            );
+
+        progressBar.style.width =
+            safeScore + "%";
+
+    }
+);
+
+</script>
+
+
+{% endblock %}

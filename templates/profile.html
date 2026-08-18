@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Candidate Profile · Resume2Interview AI{% endblock %}
+
+{% block content %}
+
+<main class="page">
+
+  <!-- PROFILE HEADER -->
+  <div class="topline">
+    <div>
+      <div class="eyebrow">CANDIDATE PROFILE · RESUME EVIDENCE</div>
+
+      <h1>{{ profile.name or current_user.name }}</h1>
+
+      <p>
+        {% if profile.email %}
+          {{ profile.email }}
+        {% endif %}
+        {% if profile.phone %}
+          · {{ profile.phone }}
+        {% endif %}
+      </p>
+    </div>
+
+    <a class="btn primary" href="{{ url_for('interview', sid=s.id) }}">
+      Start interview →
+    </a>
+  </div>
+
+  <!-- PROFILE SECTORS -->
+  <div class="profilegrid">
+
+    <!-- SKILLS -->
+    <section class="card profile-sector">
+      <small>SKILLS</small>
+
+      <div class="chips bigchips">
+        {% for x in profile.skills %}
+          <span>{{ x }}</span>
+        {% else %}
+          <span>None detected</span>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- EDUCATION -->
+    <section class="card profile-sector">
+      <small>EDUCATION</small>
+
+      <div class="profile-content">
+        {% for x in profile.education %}
+          <p>{{ x }}</p>
+        {% else %}
+          <p class="muted">No education details detected.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="card profile-sector">
+      <small>PROJECTS</small>
+
+      <div class="profile-content">
+        {% for x in profile.projects %}
+          <p>{{ x }}</p>
+        {% else %}
+          <p class="muted">No project details detected.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- CERTIFICATIONS -->
+    <section class="card profile-sector">
+      <small>CERTIFICATIONS</small>
+
+      <div class="profile-content">
+        {% for x in profile.certifications %}
+          <p>{{ x }}</p>
+        {% else %}
+          <p class="muted">No certifications detected.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- ACHIEVEMENTS -->
+    <section class="card profile-sector">
+      <small>ACHIEVEMENTS &amp; PARTICIPATION</small>
+
+      <div class="profile-content">
+        {% for x in profile.achievements %}
+          <p>{{ x }}</p>
+        {% else %}
+          <p class="muted">No achievements detected.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- EXPERIENCE -->
+    <section class="card profile-sector">
+      <small>EXPERIENCE</small>
+
+      <div class="profile-content">
+        {% for x in profile.experience %}
+          <p>{{ x }}</p>
+        {% else %}
+          <p class="muted">No professional experience section detected.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Skill Gaps · Resume2Interview AI
+{% endblock %}
+
+{% block content %}
+
+<main class="page">
+
+  <div class="topline">
+<div>
+
+  <div class="eyebrow">
+    SKILL GAP ENGINE
+  </div>
+
+  <h1>
+    What will move your profile forward?
+  </h1>
+
+  <p>
+    Gaps are prioritized using JD importance,
+    resume evidence and interview performance.
+  </p>
+
+</div>
+
+  </div>
+
+  <div class="card">
+<div class="gap-table">
+
+  <div class="gap-head">
+
+    <span>
+      SKILL
+    </span>
+
+    <span>
+      STATUS
+    </span>
+
+    <span>
+      SCORE
+    </span>
+
+    <span>
+      PRIORITY
+    </span>
+
+    <span></span>
+
+  </div>
+
+
+  {% for g in gaps %}
+
+    <div class="gap-row">
+
+      <b>
+        {{ g.skill }}
+      </b>
+
+      <span>
+        {{ g.status }}
+      </span>
+
+      <span>
+        {{ g.score }}%
+      </span>
+
+      <strong class="priority {{ g.priority|lower }}">
+        {{ g.priority }}
+      </strong>
+
+      <a
+        class="btn mini"
+        href="{{ url_for('learning', sid=s.id) }}"
+      >
+        Practice
+      </a>
+
+    </div>
+
+  {% else %}
+
+    <p>
+      No skill gaps detected yet.
+    </p>
+
+  {% endfor %}
+
+</div>
+
+  </div>
+
+</main>
+
+{% endblock %}

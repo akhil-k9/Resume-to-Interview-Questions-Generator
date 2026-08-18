@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Resume2Interview AI
+{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+
+  <div class="eyebrow">
+    AI-POWERED INTERVIEW INTELLIGENCE
+  </div>
+
+  <h1>
+    Turn your
+    <span>resume</span>
+    into a personal AI interviewer.
+  </h1>
+
+  <p>
+    Upload your resume, get role-specific questions grounded
+    in your real projects and skills, practice adaptively,
+    and discover exactly what to improve.
+  </p>
+
+  <div class="actions">
+
+
+<a
+  class="btn primary"
+  href="{{ url_for('register') }}"
+>
+  Start your AI interview →
+</a>
+
+<a
+  class="btn ghost"
+  href="#how"
+>
+  See how it works
+</a>
+
+
+  </div>
+
+  <div class="hero-tags">
+
+
+<span>
+  Resume-grounded
+</span>
+
+<span>
+  Adaptive
+</span>
+
+<span>
+  AI evaluated
+</span>
+
+<span>
+  Skill gaps
+</span>
+
+
+  </div>
+
+</section>
+
+<section
+  id="how"
+  class="section"
+>
+
+  <div class="sectionhead">
+
+
+<span>
+  THE LOOP
+</span>
+
+<h2>
+  Not just question generation.
+</h2>
+
+<p>
+  The system turns one resume into an evolving
+  interview and preparation loop.
+</p>
+
+
+  </div>
+
+  <div class="grid4">
+
+
+<div class="feature">
+
+  <b>
+    01
+  </b>
+
+  <h3>
+    Understand
+  </h3>
+
+  <p>
+    Extract skills, projects, education and
+    experience with evidence.
+  </p>
+
+</div>
+
+
+<div class="feature">
+
+  <b>
+    02
+  </b>
+
+  <h3>
+    Personalize
+  </h3>
+
+  <p>
+    Generate technical, project and HR questions
+    around the candidate.
+  </p>
+
+</div>
+
+
+<div class="feature">
+
+  <b>
+    03
+  </b>
+
+  <h3>
+    Verify
+  </h3>
+
+  <p>
+    Use progressively deeper questions to
+    validate claimed skills.
+  </p>
+
+</div>
+
+
+<div class="feature">
+
+  <b>
+    04
+  </b>
+
+  <h3>
+    Improve
+  </h3>
+
+  <p>
+    Evaluate answers, find gaps and create
+    a preparation roadmap.
+  </p>
+
+</div>
+
+
+  </div>
+
+</section>
+
+<section class="section dark">
+
+  <div class="sectionhead">
+
+<h2>
+  One product. One coherent story.
+</h2>
+
+
+  </div>
+
+  <div class="grid3">
+
+
+<div class="card">
+
+  <div class="icon">
+    
+  </div>
+
+  <h3>
+    Adaptive interview
+  </h3>
+
+  <p>
+    Strong answers lead to deeper questions;
+    weak answers trigger clarification.
+  </p>
+
+</div>
+
+
+<div class="card">
+
+  <div class="icon">
+    
+  </div>
+
+  <h3>
+    Claim verification
+  </h3>
+
+  <p>
+    Questions are tied back to the skills and
+    projects the candidate actually listed.
+  </p>
+
+</div>
+
+
+<div class="card">
+
+  <div class="icon">
+
+  </div>
+
+  <h3>
+    Readiness analytics
+  </h3>
+
+  <p>
+    See scores, weak categories, interview
+    history and next preparation actions.
+  </p>
+
+</div>
+
+
+  </div>
+
+</section>
+
+<section class="cta">
+
+  <h2>
+    Ready to make your resume interview-ready?
+  </h2>
+
+<a
+class="btn primary"
+href="{{ url_for('register') }}"
+
+>
+Create free account
+
+  </a>
+
+</section>
+
+{% endblock %}

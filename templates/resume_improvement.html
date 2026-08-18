@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Resume Improvement · Resume2Interview AI
+{% endblock %}
+
+{% block content %}
+
+<main class="page">
+
+  <div class="topline">
+<div>
+
+  <div class="eyebrow">
+    RESUME ↔ JD OPTIMIZER
+  </div>
+
+  <h1>
+    Improve your resume for this job.
+  </h1>
+
+  <p>
+    Only truthful, evidence-backed changes.
+    The system never fabricates experience.
+  </p>
+
+</div>
+
+
+<div class="readiness">
+
+  <strong>
+    {{ analysis.match }}%
+  </strong>
+
+  <span>
+    JD match
+  </span>
+
+</div>
+
+  </div>
+
+  <div class="grid2">
+<!-- MISSING / UNDERREPRESENTED -->
+
+<div class="card">
+
+  <div class="sectionhead left">
+
+    <span>
+      MISSING / UNDERREPRESENTED
+    </span>
+
+    <h2>
+      Skills & keywords
+    </h2>
+
+  </div>
+
+
+  <div class="chips">
+
+    {% for x in analysis.missing_skills %}
+
+      <span class="bad">
+        {{ x }}
+      </span>
+
+    {% else %}
+
+      <span class="good">
+        No obvious skill gaps detected
+      </span>
+
+    {% endfor %}
+
+  </div>
+
+</div>
+
+
+<!-- ACTION PLAN -->
+
+<div class="card">
+
+  <div class="sectionhead left">
+
+    <span>
+      ACTION PLAN
+    </span>
+
+    <h2>
+      Resume suggestions
+    </h2>
+
+  </div>
+
+
+  {% for x in analysis.resume_suggestions %}
+
+    <div class="recommend">
+
+      <b>
+        ✓
+      </b>
+
+      <p>
+        {{ x }}
+      </p>
+
+    </div>
+
+  {% else %}
+
+    <p>
+      No resume suggestions are available for this interview yet.
+    </p>
+
+  {% endfor %}
+
+</div>
+
+  </div>
+
+  <!-- TRUTHFUL EDITING RULE -->
+
+  <div class="card">
+<div class="sectionhead left">
+
+  <span>
+    TRUTHFUL EDITING RULE
+  </span>
+
+  <h2>
+    What the AI will not do
+  </h2>
+
+</div>
+
+<p>
+  It will not invent projects, technologies, certifications,
+  job titles, metrics or experience. If a JD skill is missing,
+  it is presented as a gap rather than falsely added to the resume.
+</p>
+
+  </div>
+
+</main>
+
+{% endblock %}
